@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.11)
 project(oculus_sonar VERSION 0.1)
 
 find_package(catkin REQUIRED COMPONENTS
@@ -11,8 +11,14 @@ find_package(catkin REQUIRED COMPONENTS
 
 generate_dynamic_reconfigure_options(${CMAKE_CURRENT_SOURCE_DIR}/cfg/OculusSonar.cfg)
 
+find_package(narval_oculus QUIET)
 if(NOT TARGET narval_oculus)
-    find_package(narval_oculus REQUIRED)
+    include(FetchContent)
+    FetchContent_Declare(oculus_driver
+        GIT_REPOSITORY https://github.com/pnarvor/oculus_driver.git
+        GIT_TAG        pnarvor
+    )
+    FetchContent_MakeAvailable(oculus_driver)
 endif()
 
 add_message_files(FILES
