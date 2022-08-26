@@ -1,16 +1,16 @@
-#ifndef _DEF_NARVAL_OCULUS_ROS_CONVERSIONS_H_
-#define _DEF_NARVAL_OCULUS_ROS_CONVERSIONS_H_
+#ifndef _DEF_OCULUS_ROS_CONVERSIONS_H_
+#define _DEF_OCULUS_ROS_CONVERSIONS_H_
 
-#include <narval_oculus/Oculus.h>
+#include <oculus_driver/Oculus.h>
 #include <oculus_sonar/OculusHeader.h>
 #include <oculus_sonar/OculusVersionInfo.h>
 #include <oculus_sonar/OculusStatus.h>
 #include <oculus_sonar/OculusFireConfig.h>
 #include <oculus_sonar/OculusPing.h>
 
-namespace narval { namespace oculus {
+namespace oculus {
 
-void copy_to_ros(oculus_sonar::OculusHeader& msg, const OculusMessageHeader& header)
+inline void copy_to_ros(oculus_sonar::OculusHeader& msg, const OculusMessageHeader& header)
 {
     msg.oculusId     = header.oculusId;
     msg.srcDeviceId  = header.srcDeviceId;
@@ -21,7 +21,7 @@ void copy_to_ros(oculus_sonar::OculusHeader& msg, const OculusMessageHeader& hea
     msg.spare2       = header.spare2;
 }
 
-void copy_to_ros(oculus_sonar::OculusVersionInfo& msg, const OculusVersionInfo& version)
+inline void copy_to_ros(oculus_sonar::OculusVersionInfo& msg, const OculusVersionInfo& version)
 {
     msg.firmwareVersion0 = version.firmwareVersion0;
     msg.firmwareDate0    = version.firmwareDate0;
@@ -31,7 +31,7 @@ void copy_to_ros(oculus_sonar::OculusVersionInfo& msg, const OculusVersionInfo& 
     msg.firmwareDate2    = version.firmwareDate2;
 }
 
-void copy_to_ros(oculus_sonar::OculusStatus& msg, const OculusStatusMsg& status)
+inline void copy_to_ros(oculus_sonar::OculusStatus& msg, const OculusStatusMsg& status)
 {
     copy_to_ros(msg.hdr, status.hdr);
 
@@ -64,7 +64,7 @@ void copy_to_ros(oculus_sonar::OculusStatus& msg, const OculusStatusMsg& status)
     msg.pressure        = status.pressure;
 }
 
-void copy_to_ros(oculus_sonar::OculusFireConfig& msg, const OculusSimpleFireMessage& fireConfig)
+inline void copy_to_ros(oculus_sonar::OculusFireConfig& msg, const OculusSimpleFireMessage& fireConfig)
 {
     copy_to_ros(msg.head, fireConfig.head);
 
@@ -79,7 +79,7 @@ void copy_to_ros(oculus_sonar::OculusFireConfig& msg, const OculusSimpleFireMess
     msg.salinity        = fireConfig.salinity;
 }
 
-void copy_to_ros(oculus_sonar::OculusPing& msg, const OculusSimplePingResult& ping)
+inline void copy_to_ros(oculus_sonar::OculusPing& msg, const OculusSimplePingResult& ping)
 {
     copy_to_ros(msg.fireMessage, ping.fireMessage);
     msg.pingId            = ping.pingId;
@@ -98,7 +98,6 @@ void copy_to_ros(oculus_sonar::OculusPing& msg, const OculusSimplePingResult& pi
     msg.messageSize       = ping.messageSize;
 }
 
-}; //namespace oculus
-}; //namespace narval
+} //namespace oculus
 
-#endif //_DEF_NARVAL_OCULUS_ROS_CONVERSIONS_H_
+#endif //_DEF_OCULUS_ROS_CONVERSIONS_H_

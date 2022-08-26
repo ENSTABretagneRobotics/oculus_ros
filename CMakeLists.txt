@@ -11,8 +11,8 @@ find_package(catkin REQUIRED COMPONENTS
 
 generate_dynamic_reconfigure_options(${CMAKE_CURRENT_SOURCE_DIR}/cfg/OculusSonar.cfg)
 
-find_package(narval_oculus QUIET)
-if(NOT TARGET narval_oculus)
+find_package(oculus_driver QUIET)
+if(NOT TARGET oculus_driver)
     include(FetchContent)
     FetchContent_Declare(oculus_driver
         GIT_REPOSITORY https://github.com/pnarvor/oculus_driver.git
@@ -46,11 +46,11 @@ add_executable(oculus_sonar_node
 target_include_directories(oculus_sonar_node PRIVATE src)
 target_link_libraries(oculus_sonar_node PRIVATE
     ${catkin_LIBRARIES}
-    narval_oculus
+    oculus_driver
 )
 add_dependencies(oculus_sonar_node oculus_sonar_generate_messages_cpp ${PROJECT_NAME}_gencfg)
 
-find_package(rtac_display)
+find_package(rtac_display QUIET)
 if(TARGET rtac_display)
     add_executable(oculus_sonar_display
         src/PingRenderer.cpp
@@ -59,7 +59,7 @@ if(TARGET rtac_display)
     target_include_directories(oculus_sonar_display PRIVATE src)
     target_link_libraries(oculus_sonar_display PRIVATE
         ${catkin_LIBRARIES}
-        narval_oculus
+        oculus_driver
         rtac_display
     )
     add_dependencies(oculus_sonar_display oculus_sonar_generate_messages_cpp ${PROJECT_NAME}_gencfg)

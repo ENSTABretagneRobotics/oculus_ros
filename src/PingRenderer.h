@@ -6,7 +6,7 @@
 
 #include <rtac_display/renderers/FanRenderer.h>
 
-#include <narval_oculus/Oculus.h>
+#include <oculus_driver/Oculus.h>
 #include <oculus_sonar/OculusPing.h>
 
 namespace rtac { namespace display {

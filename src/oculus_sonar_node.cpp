@@ -9,8 +9,8 @@ using namespace std;
 #include <boost/thread/recursive_mutex.hpp>
 #include "ros/ros.h"
 
-#include <narval_oculus/AsyncService.h>
-#include <narval_oculus/SonarDriver.h>
+#include <oculus_driver/AsyncService.h>
+#include <oculus_driver/SonarDriver.h>
 
 #include <oculus_sonar/OculusStatus.h>
 #include <oculus_sonar/OculusStampedPing.h>
@@ -20,13 +20,13 @@ using namespace std;
 
 #include <conversions.h>
 
-using SonarDriver = narval::oculus::SonarDriver;
+using SonarDriver = oculus::SonarDriver;
 
 void publish_status(ros::Publisher& publisher, const OculusStatusMsg& status)
 {
     static oculus_sonar::OculusStatus msg;
     
-    narval::oculus::copy_to_ros(msg, status);
+    oculus::copy_to_ros(msg, status);
 
     publisher.publish(msg);
 }
@@ -52,7 +52,7 @@ void publish_ping(SonarDriver* sonarDriver,
         //return;
     }
     
-    narval::oculus::copy_to_ros(msg.ping, pingMetadata);
+    oculus::copy_to_ros(msg.ping, pingMetadata);
     msg.ping.data.resize(pingData.size());
     for(int i = 0; i < msg.ping.data.size(); i++)
         msg.ping.data[i] = pingData[i];
@@ -219,7 +219,7 @@ int main(int argc, char **argv)
     ros::Publisher pingPublisher   = node.advertise<oculus_sonar::OculusStampedPing>(pingTopic,
                                                                                      100);
 
-    narval::oculus::AsyncService ioService;
+    oculus::AsyncService ioService;
     SonarDriver sonarDriver(ioService.io_service());
     ioService.start();
     if(!sonarDriver.wait_next_message()) {
