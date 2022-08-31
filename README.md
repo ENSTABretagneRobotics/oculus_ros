@@ -18,7 +18,7 @@ cd <your catkin workspace>/src
 
 Clone with repository.
 ```
-git clone https://github.com/pnarvor/oculus_ros.git
+git clone https://github.com/ENSTABretagneRobotics/oculus_ros.git
 ```
 
 Build the oculus_sonar ROS node:
@@ -41,11 +41,12 @@ All set !
 
 If you don't have an internet connection available on the system on which you
 want to use this node, your have to install the
-[oculus_driver](https://github.com/pnarvor/oculus_driver) library beforehand.
+[oculus_driver](https://github.com/ENSTABretagneRobotics/oculus_driver.git)
+library beforehand.
 
 Clone or copy the oculus_driver library :
 ```
-git clone https://github.com/pnarvor/oculus_driver.git
+git clone https://github.com/ENSTABretagneRobotics/oculus_driver.git
 ```
 
 This library follows a standard CMake compilation procedure. cd into the repo
