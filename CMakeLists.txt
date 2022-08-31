@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.11)
-project(oculus_sonar VERSION 0.1)
+cmake_minimum_required(VERSION 3.16)
+project(oculus_sonar VERSION 1.0)
 
 find_package(catkin REQUIRED COMPONENTS
     roscpp
@@ -16,7 +16,7 @@ if(NOT TARGET oculus_driver)
     include(FetchContent)
     FetchContent_Declare(oculus_driver
         GIT_REPOSITORY https://github.com/pnarvor/oculus_driver.git
-        GIT_TAG        pnarvor
+        GIT_TAG        v1.0
     )
     FetchContent_MakeAvailable(oculus_driver)
 endif()
