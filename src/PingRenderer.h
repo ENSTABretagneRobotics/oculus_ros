@@ -4,10 +4,10 @@
 #include <rtac_base/types/Handle.h>
 #include <rtac_base/interpolation.h>
 
-#include <rtac_display/renderers/FanRenderer.h>
-
 #include <oculus_driver/Oculus.h>
 #include <oculus_sonar/OculusPing.h>
+
+#include "FanRendererES.h"
 
 namespace rtac { namespace display {
 
@@ -21,7 +21,7 @@ struct GLFormat<uint16_t>
     static constexpr GLenum Type        = GL_UNSIGNED_SHORT;
 };
 
-class PingRenderer : public FanRenderer
+class PingRenderer : public FanRendererES
 {
     public:
 

@@ -7,14 +7,15 @@ using namespace rtac::display;
 #include <ros/ros.h>
 
 #include <oculus_sonar/OculusPing.h>
+#include <oculus_sonar/OculusStampedPing.h>
 
 #include "PingRenderer.h"
 
 PingRenderer::Ptr pingRenderer;
 
-void ping_callback(const oculus_sonar::OculusPing& ping)
+void ping_callback(const oculus_sonar::OculusStampedPing& ping)
 {
-    pingRenderer->set_ping_data(ping);
+    pingRenderer->set_ping_data(ping.ping);
 }
 
 int main(int argc, char** argv)
@@ -32,7 +33,7 @@ int main(int argc, char** argv)
 
     Display display;
     pingRenderer = display.create_renderer<PingRenderer>(View::New());
-    pingRenderer->set_direction(rtac::display::FanRenderer::Direction::Down);
+    pingRenderer->set_direction(rtac::display::FanRendererES::Direction::Down);
 
     ros::Subscriber sub = node.subscribe(pingTopic, 100, ping_callback);
 

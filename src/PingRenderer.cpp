@@ -3,7 +3,7 @@
 namespace rtac { namespace display {
 
 PingRenderer::PingRenderer(const GLContext::Ptr& context) :
-    FanRenderer(context),
+    FanRendererES(context),
     currentMasterMode_(255)
 {}
 

@@ -53,6 +53,7 @@ add_dependencies(oculus_sonar_node oculus_sonar_generate_messages_cpp ${PROJECT_
 find_package(rtac_display QUIET)
 if(TARGET rtac_display)
     add_executable(oculus_sonar_display
+        src/FanRendererES.cpp
         src/PingRenderer.cpp
         src/oculus_sonar_display.cpp
     )
