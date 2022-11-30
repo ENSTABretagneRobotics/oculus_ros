@@ -31,11 +31,10 @@ class FanRendererES : public Renderer
     using Mat4      = View::Mat4;
     using Point2    = rtac::types::Point2<float>;
     using Point4    = rtac::types::Point4<float>;
-    using Interval  = rtac::types::Interval<float>;
+    using Interval  = rtac::types::Bounds<float>;
     using Rectangle = rtac::types::Rectangle<float>;
 
-    //using Interpolator = rtac::algorithm::InterpolatorLinear<float>;
-    using Interpolator = rtac::algorithm::InterpolatorCubicSpline<float>;
+    using Interpolator = rtac::algorithm::Interpolator<float>;
 
     static const std::string& vertexShader;
     static const std::string& fragmentShader;

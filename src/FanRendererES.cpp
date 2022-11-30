@@ -130,15 +130,15 @@ FanRendererES::Ptr FanRendererES::Create(const GLContext::Ptr& context)
 
 void FanRendererES::set_value_range(Interval valueRange)
 {
-    if(fabs(valueRange.max - valueRange.min) < 1.0e-6)
+    if(fabs(valueRange.upper - valueRange.lower) < 1.0e-6)
         return;
     valueRange_ = valueRange;
 }
 
 void FanRendererES::set_geometry_degrees(const Interval& angle, const Interval& range)
 {
-    this->set_geometry({(float)(angle.min * M_PI / 180.0f),
-                        (float)(angle.max * M_PI / 180.0f)},
+    this->set_geometry({(float)(angle.lower * M_PI / 180.0f),
+                        (float)(angle.upper * M_PI / 180.0f)},
                        range);
 }
 
@@ -147,44 +147,44 @@ void FanRendererES::set_geometry(Interval angle, const Interval& range)
     using Point2 = rtac::types::Point2<float>;
 
     // Normalizing angle bounds
-    // (angle.min in [-pi,pi] and angle.max in ]angle.min, angle.min + 2pi])
-    while(angle.max > angle.min + 2*M_PI) angle.max -= 2*M_PI;
-    while(angle.max <= angle.min + 0.01f) angle.max += 2*M_PI;
-    while(angle.min >  M_PI) {
-        angle.min -= 2*M_PI;
-        angle.max -= 2*M_PI;
+    // (angle.lower in [-pi,pi] and angle.upper in ]angle.lower, angle.lower + 2pi])
+    while(angle.upper > angle.lower + 2*M_PI) angle.upper -= 2*M_PI;
+    while(angle.upper <= angle.lower + 0.01f) angle.upper += 2*M_PI;
+    while(angle.lower >  M_PI) {
+        angle.lower -= 2*M_PI;
+        angle.upper -= 2*M_PI;
     }
-    while(angle.min < -M_PI) { 
-        angle.min += 2*M_PI;
-        angle.max += 2*M_PI;
+    while(angle.lower < -M_PI) { 
+        angle.lower += 2*M_PI;
+        angle.upper += 2*M_PI;
     }
 
     // finding extermas of the fan display area.
     std::vector<Point2> poi;
-    poi.push_back({range.min*std::cos(angle.min), range.min*std::sin(angle.min)});
-    poi.push_back({range.min*std::cos(angle.max), range.min*std::sin(angle.max)});
-    poi.push_back({range.max*std::cos(angle.min), range.max*std::sin(angle.min)});
-    poi.push_back({range.max*std::cos(angle.max), range.max*std::sin(angle.max)});
+    poi.push_back({range.lower*std::cos(angle.lower), range.lower*std::sin(angle.lower)});
+    poi.push_back({range.lower*std::cos(angle.upper), range.lower*std::sin(angle.upper)});
+    poi.push_back({range.upper*std::cos(angle.lower), range.upper*std::sin(angle.lower)});
+    poi.push_back({range.upper*std::cos(angle.upper), range.upper*std::sin(angle.upper)});
 
     auto is_inside = [](float angle, const Interval& bounds) { 
-        if(angle < bounds.min) angle += 2*M_PI;
-        return angle <= bounds.max; 
+        if(angle < bounds.lower) angle += 2*M_PI;
+        return angle <= bounds.upper; 
     };
     if(is_inside(0.0f, angle)) {
-        poi.push_back({range.min, 0.0});
-        poi.push_back({range.max, 0.0});
+        poi.push_back({range.lower, 0.0});
+        poi.push_back({range.upper, 0.0});
     }
     if(is_inside(M_PI, angle)) {
-        poi.push_back({-range.min, 0.0});
-        poi.push_back({-range.max, 0.0});
+        poi.push_back({-range.lower, 0.0});
+        poi.push_back({-range.upper, 0.0});
     }
     if(is_inside(0.5f*M_PI, angle)) {
-        poi.push_back({0.0, range.min});
-        poi.push_back({0.0, range.max});
+        poi.push_back({0.0, range.lower});
+        poi.push_back({0.0, range.upper});
     }
     if(is_inside(-0.5f*M_PI, angle)) {
-        poi.push_back({0.0, -range.min});
-        poi.push_back({0.0, -range.max});
+        poi.push_back({0.0, -range.lower});
+        poi.push_back({0.0, -range.upper});
     }
 
     bounds_.left   = poi[0].x;
@@ -256,8 +256,7 @@ void FanRendererES::set_bearings(unsigned int nBeams, const float* bearings,
         b[i]  = ((bearings[nBeams-1] - bearings[0])*i) / (mapSize - 1) + bearings[0];
     }
 
-    Interpolator interp(y0,x0);
-    auto ib = interp(b);
+    auto ib = Interpolator::CreateCubicSpline(y0,x0)(b);
 
     if(!bearingMap_) {
         bearingMap_ = GLTexture::New();
@@ -355,12 +354,12 @@ void FanRendererES::draw(const View::ConstPtr& view) const
         1, GL_FALSE, mat.data());
 
     glUniform2f(glGetUniformLocation(renderProgram_, "valueScaling"),
-                1.0f / (valueRange_.max - valueRange_.min),
-               -valueRange_.min / (valueRange_.max - valueRange_.min));
+                1.0f / (valueRange_.upper - valueRange_.lower),
+               -valueRange_.lower / (valueRange_.upper - valueRange_.lower));
     glUniform2f(glGetUniformLocation(renderProgram_, "angleBounds"),
-                angle_.min, angle_.max);
+                angle_.lower, angle_.upper);
     glUniform2f(glGetUniformLocation(renderProgram_, "rangeBounds"),
-                range_.min, range_.max);
+                range_.lower, range_.upper);
 
     glUniform1i(glGetUniformLocation(renderProgram_, "fanData"), 0);
     glActiveTexture(GL_TEXTURE0);
