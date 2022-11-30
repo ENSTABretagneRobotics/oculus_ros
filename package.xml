@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>oculus_sonar</name>
-  <version>0.0.1</version>
+  <version>1.2.1</version>
   <description>ROS node for BluePrint subsea Oculus sonar</description>
 
   <maintainer email="pierre.narvor@ensta-bretagne.fr">Pierre Narvor</maintainer>
