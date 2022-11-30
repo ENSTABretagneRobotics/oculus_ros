@@ -152,7 +152,7 @@ inline void copy_to_ros(sensor_msgs::Image& msg, const oculus::PingMessage::Cons
     msg.is_bigendian = 0;
     msg.step = ping->step();
     msg.data.assign(ping->ping_data(),
-                    ping->ping_data() + ping->data_size());
+                    ping->ping_data() + ping->ping_data_size());
 }
 
 inline void copy_to_ros(oculus_sonar::Ping& msg, const oculus::PingMessage::ConstPtr& ping)
@@ -175,11 +175,10 @@ inline void copy_to_ros(oculus_sonar::Ping& msg, const oculus::PingMessage::Cons
     msg.nBeams            = ping->bearing_count();
     msg.step              = ping->step();
     msg.sampleSize        = ping->sample_size();
+    msg.bearingDataOffset = ping->bearing_data_offset();
+    msg.pingDataOffset    = ping->ping_data_offset();
 
-    msg.bearings.assign(ping->bearing_data(),
-                        ping->bearing_data() + ping->bearing_count());
-    msg.pingData.assign(ping->ping_data(),
-                        ping->ping_data() + ping->data_size());
+    msg.data = ping->data();
 }
 
 } //namespace oculus

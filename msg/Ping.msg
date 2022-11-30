@@ -27,13 +27,18 @@ uint16  nBeams              # Width  of the ping image data.
 uint32  step                # Size in bytes of each row in the ping data image.
 uint8   sampleSize          # Size in bytes of each "pixel" in the ping data.
 
-int16[] bearings            # Bearing angle of each column of the sonar data
-                            # (in 100th of a degree, multiply by 0.01 to get a
-                            # value in degrees).
-                            # The sonar image is not sampled uniformly in the
-                            # bearing direction.
+uint32  bearingDataOffset   # Offset in bytes where to find the bearing angles
+                            # in the data vector field.
+                            # Bearing angles relates to each column of the
+                            # sonar data (angles are encoded in int16, 100th of
+                            # a degree. Multiply by 0.01 to get a value in
+                            # degrees).  The sonar image is not sampled
+                            # uniformly in the bearing direction.
 
-uint8[] pingData            # Ping data (is a row major image in little-endian). 
+uint32  pingDataOffset      # Offset in byte where to find the acoustics data
+                            # in the data vector field.
+                            # The acoustic data is a row major image in
+                            # little-endian at the end of the data vector.
                             # Size in bytes of each pixel is given in the
                             # sampleSize field. The size in bytes of each line
                             # is given in the step field.  If the hasGains
@@ -42,4 +47,7 @@ uint8[] pingData            # Ping data (is a row major image in little-endian).
                             # endian uint32. Divide the whole row by the square
                             # root of this gain to have consistent value across
                             # the image data).
+
+uint8[] data                # Contains full oculus message binary, including
+                            # message header, bearing data and ping data.
 
