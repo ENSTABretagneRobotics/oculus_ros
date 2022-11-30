@@ -5,6 +5,7 @@ find_package(catkin REQUIRED COMPONENTS
     roscpp
     rospy
     std_msgs
+    sensor_msgs
     message_generation
     dynamic_reconfigure
 )
@@ -28,19 +29,22 @@ add_message_files(FILES
    OculusFireConfig.msg
    OculusPing.msg
    OculusStampedPing.msg
+   Ping.msg
 )
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(DEPENDENCIES
     std_msgs
+    sensor_msgs
 )
 
-catkin_package(CATKIN_DEPENDS roscpp rospy std_msgs)
+catkin_package(CATKIN_DEPENDS roscpp rospy std_msgs sensor_msgs)
 
 # replace with target include directories ?
 include_directories(${catkin_INCLUDE_DIRS})
 
 add_executable(oculus_sonar_node
+    src/OculusNode.cpp
     src/oculus_sonar_node.cpp
 )
 target_include_directories(oculus_sonar_node PRIVATE src)

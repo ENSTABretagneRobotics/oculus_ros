@@ -2,13 +2,27 @@
 #define _DEF_OCULUS_ROS_CONVERSIONS_H_
 
 #include <oculus_driver/Oculus.h>
+
+#include <sensor_msgs/Image.h>
+
 #include <oculus_sonar/OculusHeader.h>
 #include <oculus_sonar/OculusVersionInfo.h>
 #include <oculus_sonar/OculusStatus.h>
 #include <oculus_sonar/OculusFireConfig.h>
 #include <oculus_sonar/OculusPing.h>
 
+#include <oculus_sonar/Ping.h>
+
 namespace oculus {
+
+inline ros::Time to_ros_stamp(const SonarDriver::TimePoint& stamp)
+{
+    size_t nano = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        stamp.time_since_epoch()).count();
+    size_t seconds = nano / 1000000000;
+    return ros::Time(seconds, nano - 1000000000*seconds);
+}
+
 
 inline void copy_to_ros(oculus_sonar::OculusHeader& msg, const OculusMessageHeader& header)
 {
@@ -96,6 +110,68 @@ inline void copy_to_ros(oculus_sonar::OculusPing& msg, const OculusSimplePingRes
     msg.imageOffset       = ping.imageOffset;
     msg.imageSize         = ping.imageSize;
     msg.messageSize       = ping.messageSize;
+}
+
+inline void copy_to_ros(sensor_msgs::Image& msg, const oculus::PingMessage::ConstPtr& ping)
+{
+    msg.header.stamp    = to_ros_stamp(ping->timestamp());
+    msg.header.frame_id = "oculus_sonar";
+
+    msg.height = ping->range_count();
+    
+    auto sampleSize = ping->sample_size();
+    if(sampleSize == 1) {
+        msg.encoding = "mono8";
+        if(ping->has_gains())
+            msg.width = 4 + ping->bearing_count();
+        else
+            msg.width = ping->bearing_count();
+    }
+    else if(sampleSize == 2) {
+        msg.encoding = "mono16";
+        if(ping->has_gains())
+            msg.width = 2 + ping->bearing_count();
+        else
+            msg.width = ping->bearing_count();
+    }
+    else {
+        std::cerr << "Unhandled ping sample size : " << sampleSize
+                  << ". Ping data will have to be parsed by hand." << std::endl;
+        msg.encoding = "mono8";
+        msg.width    = ping->step();
+    }
+    
+    msg.is_bigendian = 0;
+    msg.step = ping->step();
+    msg.data.assign(ping->ping_data(),
+                    ping->ping_data() + ping->data_size());
+}
+
+inline void copy_to_ros(oculus_sonar::Ping& msg, const oculus::PingMessage::ConstPtr& ping)
+{
+    msg.header.stamp    = to_ros_stamp(ping->timestamp());
+    msg.header.frame_id = "oculus_sonar";
+
+    msg.pingId            = ping->ping_index();
+    msg.pingFiringDate    = ping->ping_firing_date();
+    msg.range             = ping->range();
+    msg.gainPercent       = ping->gain_percent();
+    msg.frequency         = ping->frequency();
+    msg.speedOfSoundUsed  = ping->speed_of_sound_used();
+    msg.rangeResolution   = ping->range_resolution();
+    msg.temperature       = ping->temperature();
+    msg.pressure          = ping->pressure();
+    msg.masterMode        = ping->master_mode();
+    msg.hasGains          = ping->has_gains();
+    msg.nRanges           = ping->range_count();
+    msg.nBeams            = ping->bearing_count();
+    msg.step              = ping->step();
+    msg.sampleSize        = ping->sample_size();
+
+    msg.bearings.assign(ping->bearing_data(),
+                        ping->bearing_data() + ping->bearing_count());
+    msg.pingData.assign(ping->ping_data(),
+                        ping->ping_data() + ping->data_size());
 }
 
 } //namespace oculus
