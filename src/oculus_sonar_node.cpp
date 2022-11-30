@@ -4,8 +4,6 @@
 #include <future>
 using namespace std;
 
-
-#define BOOST_BIND_GLOBAL_PLACEHOLDERS
 #include <boost/thread/recursive_mutex.hpp>
 #include "ros/ros.h"
 
@@ -41,15 +39,23 @@ inline ros::Time to_ros_stamp(const SonarDriver::TimePoint& stamp)
 
 void publish_ping(SonarDriver* sonarDriver,
                   ros::Publisher& publisher, 
-                  const OculusSimplePingResult& pingMetadata,
-                  const std::vector<uint8_t>& pingData)
+                  const oculus::PingMessage::ConstPtr& pingMsg)
+                  //const OculusSimplePingResult& pingMetadata,
+                  //const std::vector<uint8_t>& pingData)
 {
+    if(pingMsg->message()->message_version() == 2) {
+        // v2 oculus message not handled here
+        return;
+    }
+    const std::vector<uint8_t>&   pingData = pingMsg->message()->data();
+    const OculusSimplePingResult& pingMetadata =
+        *reinterpret_cast<const OculusSimplePingResult*>(pingData.data());
+
     static oculus_sonar::OculusStampedPing msg;
 
     if(publisher.getNumSubscribers() == 0) {
         cout << "Going to standby mode" << endl;
         sonarDriver->standby();
-        //return;
     }
     
     oculus::copy_to_ros(msg.ping, pingMetadata);
@@ -57,7 +63,7 @@ void publish_ping(SonarDriver* sonarDriver,
     for(int i = 0; i < msg.ping.data.size(); i++)
         msg.ping.data[i] = pingData[i];
 
-    msg.header.stamp    = to_ros_stamp(sonarDriver->last_header_stamp());
+    msg.header.stamp    = to_ros_stamp(pingMsg->timestamp());
     msg.header.frame_id = "oculus_sonar";
     publisher.publish(msg);
 }
@@ -196,7 +202,8 @@ void set_config_callback(
     dynamic_reconfigure::Server<oculus_sonar::OculusSonarConfig>* configServer,
     SonarDriver* sonarDriver)
 {
-    configServer->setCallback(boost::bind(&config_request, sonarDriver, _1, _2));
+    configServer->setCallback(std::bind(&config_request, sonarDriver, 
+        std::placeholders::_1, std::placeholders::_2));
 }
 
 int main(int argc, char **argv)
@@ -227,10 +234,15 @@ int main(int argc, char **argv)
                   << "Is it properly connected ?" << std::endl;
     }
     
-    sonarDriver.add_status_callback(&publish_status, statusPublisher);
-    sonarDriver.add_ping_callback(&publish_ping, &sonarDriver, pingPublisher);
+    //using namespace std::placeholders; // allows to use _1, instead of std::placeholders::_1
+                                         // edit : does not work with ros.
+    sonarDriver.add_status_callback(
+        std::bind(&publish_status, statusPublisher, std::placeholders::_1));
+    sonarDriver.add_ping_callback(
+        std::bind(&publish_ping, &sonarDriver, pingPublisher, std::placeholders::_1));
     // callback on dummy messages to reactivate the pings as needed
-    sonarDriver.add_dummy_callback(&handle_dummy, &sonarDriver, pingPublisher);
+    sonarDriver.add_dummy_callback(
+        std::bind(&handle_dummy, &sonarDriver, pingPublisher, std::placeholders::_1));
 
 
     // config server
@@ -239,7 +251,7 @@ int main(int argc, char **argv)
     //sonarDriver.add_message_callback(&publish_config, &sonarDriver, &configServer, &configMutex);
 
     dynamic_reconfigure::Server<oculus_sonar::OculusSonarConfig> configServer(node);
-    configServer.setCallback(boost::bind(&config_request, &sonarDriver, _1, _2));
+    configServer.setCallback(std::bind(&config_request, &sonarDriver, std::placeholders::_1, std::placeholders::_2));
 
     ros::spin();
     ioService.stop();
