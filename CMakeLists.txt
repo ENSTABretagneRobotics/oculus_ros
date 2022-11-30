@@ -29,6 +29,7 @@ add_message_files(FILES
    OculusFireConfig.msg
    OculusPing.msg
    OculusStampedPing.msg
+   Raw.msg
    Ping.msg
 )
 

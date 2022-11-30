@@ -7,21 +7,29 @@ OculusNode::OculusNode(const std::string& nodeName) :
     configServer_(node_),
     sonar_(service_.io_service())
 {
-    node_.param<std::string>("ping_topic",   pingTopic_,   "ping");
-    node_.param<std::string>("status_topic", statusTopic_, "status");
-    node_.param<bool>("publish_without_subs", publishWithoutSubs_, false);
-    node_.param<std::string>("ping_topic_deprecated",  pingTopicDeprecated_,  "ping_deprecated");
+    node_.param<std::string>("ping_topic",       pingTopic_,      "ping");
+    node_.param<std::string>("status_topic",     statusTopic_,    "status");
+    node_.param<std::string>("raw_topic",        rawTopic_,       "raw");
+    node_.param<std::string>("ping_image_topic", pingImageTopic_, "ping_image");
 
-    pingPublisher_   = node_.advertise<oculus_sonar::Ping>(pingTopic_, 100);
-    statusPublisher_ = node_.advertise<oculus_sonar::OculusStatus>(statusTopic_, 100);
+    pingPublisher_   = node_.advertise<oculus_sonar::Ping>        (pingTopic_,      100);
+    statusPublisher_ = node_.advertise<oculus_sonar::OculusStatus>(statusTopic_,    100);
+    imagePublisher_  = node_.advertise<sensor_msgs::Image>        (pingImageTopic_, 100);
+    rawPublisher_    = node_.advertise<oculus_sonar::Raw>         (rawTopic_,       100);
+
+    node_.param<bool>("publish_without_subs", publishWithoutSubs_, false);
+
+    node_.param<std::string>("ping_topic_deprecated",  pingTopicDeprecated_,  "ping_deprecated");
     pingPublisherDeprecated_ = node_.advertise<oculus_sonar::OculusPing>(pingTopicDeprecated_, 100);
 
-    sonar_.add_ping_callback(  std::bind(&OculusNode::ping_callback,
-                                         this, std::placeholders::_1));
-    sonar_.add_status_callback(std::bind(&OculusNode::status_callback,
-                                         this, std::placeholders::_1));
-    sonar_.add_dummy_callback(std::bind(&OculusNode::dummy_callback,
-                                        this, std::placeholders::_1));
+    sonar_.add_ping_callback(   std::bind(&OculusNode::ping_callback,
+                                          this, std::placeholders::_1));
+    sonar_.add_message_callback(std::bind(&OculusNode::message_callback,
+                                          this, std::placeholders::_1));
+    sonar_.add_status_callback( std::bind(&OculusNode::status_callback,
+                                          this, std::placeholders::_1));
+    sonar_.add_dummy_callback(  std::bind(&OculusNode::dummy_callback,
+                                          this, std::placeholders::_1));
     this->start();
 
     configServer_.setCallback(std::bind(&OculusNode::reconfigure_callback, this,
@@ -53,9 +61,15 @@ void OculusNode::ping_callback(const oculus::PingMessage::ConstPtr& ping)
         sonar_.standby();
     }
 
-    static oculus_sonar::Ping msg;
+    oculus_sonar::Ping msg;
     oculus::copy_to_ros(msg, ping);
     pingPublisher_.publish(msg);
+
+    if(imagePublisher_.getNumSubscribers() > 0) {
+        sensor_msgs::Image img;
+        oculus::copy_to_ros(img, ping);
+        imagePublisher_.publish(img);
+    }
 
     // This method is deprecated and will be removed in future release.
     this->publish_deprecated(ping);
@@ -67,7 +81,7 @@ void OculusNode::publish_deprecated(const oculus::PingMessage::ConstPtr& ping)
         // v2 oculus message not compatible with OculusStampedPing
         return;
     }
-    static oculus_sonar::OculusStampedPing msg;
+    oculus_sonar::OculusStampedPing msg;
 
     const std::vector<uint8_t>&   pingData = ping->message()->data();
     const OculusSimplePingResult& pingMetadata =
@@ -85,9 +99,16 @@ void OculusNode::publish_deprecated(const oculus::PingMessage::ConstPtr& ping)
 
 void OculusNode::status_callback(const OculusStatusMsg& status)
 {
-    static oculus_sonar::OculusStatus msg;
+    oculus_sonar::OculusStatus msg;
     oculus::copy_to_ros(msg, status);
     statusPublisher_.publish(msg);
+}
+
+void OculusNode::message_callback(const oculus::Message::ConstPtr& msg)
+{
+    oculus_sonar::Raw rosMsg;
+    oculus::copy_to_ros(rosMsg, msg);
+    rawPublisher_.publish(rosMsg);
 }
 
 void OculusNode::reconfigure_callback(oculus_sonar::OculusSonarConfig& config,
@@ -166,6 +187,8 @@ void OculusNode::reconfigure_callback(oculus_sonar::OculusSonarConfig& config,
 bool OculusNode::has_ping_subscribers() const
 {
     return pingPublisher_.getNumSubscribers() > 0
+        || rawPublisher_.getNumSubscribers() > 0
+        || imagePublisher_.getNumSubscribers() > 0
         || pingPublisherDeprecated_.getNumSubscribers() > 0;
 }
 

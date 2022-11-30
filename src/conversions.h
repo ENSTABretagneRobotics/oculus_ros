@@ -11,6 +11,7 @@
 #include <oculus_sonar/OculusFireConfig.h>
 #include <oculus_sonar/OculusPing.h>
 
+#include <oculus_sonar/Raw.h>
 #include <oculus_sonar/Ping.h>
 
 namespace oculus {
@@ -110,6 +111,13 @@ inline void copy_to_ros(oculus_sonar::OculusPing& msg, const OculusSimplePingRes
     msg.imageOffset       = ping.imageOffset;
     msg.imageSize         = ping.imageSize;
     msg.messageSize       = ping.messageSize;
+}
+
+inline void copy_to_ros(oculus_sonar::Raw& rosMsg, const oculus::Message::ConstPtr& msg)
+{
+    rosMsg.header.stamp    = to_ros_stamp(msg->timestamp());
+    rosMsg.header.frame_id = "oculus_sonar";
+    rosMsg.data = msg->data();
 }
 
 inline void copy_to_ros(sensor_msgs::Image& msg, const oculus::PingMessage::ConstPtr& ping)

@@ -20,6 +20,8 @@ class OculusNode
 
     std::string pingTopic_;
     std::string statusTopic_;
+    std::string pingImageTopic_;
+    std::string rawTopic_;
     std::string pingTopicDeprecated_;
     bool        publishWithoutSubs_;
 
@@ -27,6 +29,8 @@ class OculusNode
 
     ros::Publisher pingPublisher_;
     ros::Publisher statusPublisher_;
+    ros::Publisher imagePublisher_;
+    ros::Publisher rawPublisher_;
     ros::Publisher pingPublisherDeprecated_;
 
     dynamic_reconfigure::Server<oculus_sonar::OculusSonarConfig> configServer_;
@@ -44,6 +48,7 @@ class OculusNode
 
     void ping_callback(const oculus::PingMessage::ConstPtr& msg);
     void status_callback(const OculusStatusMsg& status);
+    void message_callback(const oculus::Message::ConstPtr& msg);
 
     void reconfigure_callback(oculus_sonar::OculusSonarConfig& config,
                               int32_t level);
